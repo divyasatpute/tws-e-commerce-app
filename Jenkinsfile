@@ -57,13 +57,13 @@ pipeline {
             }
         }
 
-        stage('Security Scan with Trivy') {
-    steps {
-        script {
-            trivyScan.scan()
+       stage('Security Scan with Trivy') {
+            steps {
+                script {
+                    trivyScan(imageName: 'your-image-name', imageTag: 'latest', threshold: 100, severity: 'HIGH,CRITICAL')
+                }
+            }
         }
-    }
-}
 
         stage('Push Docker Images') {
             parallel {
