@@ -65,33 +65,21 @@ pipeline {
             }
         }
 
-        stage('Push Docker Images') {
-            parallel {
-                stage('Push Main App Image') {
-                    steps {
-                        script {
-                            docker.push(
-                                imageName: env.DOCKER_IMAGE_NAME,
-                                imageTag: env.DOCKER_IMAGE_TAG,
-                                credentials: 'docker-hub-credentials'
-                            )
-                        }
-                    }
-                }
+        script {
+    docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-credentials') {
+        def image = docker.image('divyasatpute/easyshop-app:25')
+        image.push()
+    }
+}
 
-                stage('Push Migration Image') {
-                    steps {
-                        script {
-                            docker.push(
-                                imageName: env.DOCKER_MIGRATION_IMAGE_NAME,
-                                imageTag: env.DOCKER_IMAGE_TAG,
-                                credentials: 'docker-hub-credentials'
-                            )
-                        }
-                    }
-                }
-            }
-        }
+
+               script {
+    docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-credentials') {
+        def image = docker.image('divyasatpute/easyshop-migration:25')
+        image.push()
+    }
+}
+
 
         stage('Update Kubernetes Manifests') {
             steps {
