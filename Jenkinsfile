@@ -17,48 +17,43 @@ pipeline {
             steps {
                 script {
                     cleanWs()
-
                 }
             }
         }
         
-    stage('Clone Repository') {
-    steps {
-        git branch: 'master', url: 'https://github.com/divyasatpute/tws-e-commerce-app.git'
-          }
-    }
-
-        
-     stage('Build Docker Images') {
-    parallel {
-        stage('Build Main App Image') {
+        stage('Clone Repository') {
             steps {
-                script {
-                    try {
-                        echo "Building Docker image: ${env.DOCKER_IMAGE_NAME}:${env.DOCKER_IMAGE_TAG} using Dockerfile: Dockerfile"
-                        
-                        // Call docker_build function
-                        docker_build(
-                            imageName: env.DOCKER_IMAGE_NAME,
-                            imageTag: env.DOCKER_IMAGE_TAG,
-                            dockerfile: 'Dockerfile',
-                            context: '.'
-                        )
+                git branch: 'master', url: 'https://github.com/divyasatpute/tws-e-commerce-app.git'
+            }
+        }
 
-                        echo "Docker image ${env.DOCKER_IMAGE_NAME}:${env.DOCKER_IMAGE_TAG} built successfully."
-                    } catch (Exception e) {
-                        currentBuild.result = 'FAILURE'
-                        echo "Error during Docker build for image ${env.DOCKER_IMAGE_NAME}:${env.DOCKER_IMAGE_TAG}: ${e.getMessage()}"
-                        echo "Stacktrace: ${e.getStackTrace()}"
-                        throw e
+        stage('Build Docker Images') {
+            parallel {
+                stage('Build Main App Image') {
+                    steps {
+                        script {
+                            try {
+                                echo "Building Docker image: ${env.DOCKER_IMAGE_NAME}:${env.DOCKER_IMAGE_TAG} using Dockerfile: Dockerfile"
+                                
+                                // Call docker_build function
+                                docker_build(
+                                    imageName: env.DOCKER_IMAGE_NAME,
+                                    imageTag: env.DOCKER_IMAGE_TAG,
+                                    dockerfile: 'Dockerfile',
+                                    context: '.'
+                                )
+
+                                echo "Docker image ${env.DOCKER_IMAGE_NAME}:${env.DOCKER_IMAGE_TAG} built successfully."
+                            } catch (Exception e) {
+                                currentBuild.result = 'FAILURE'
+                                echo "Error during Docker build for image ${env.DOCKER_IMAGE_NAME}:${env.DOCKER_IMAGE_TAG}: ${e.getMessage()}"
+                                echo "Stacktrace: ${e.getStackTrace()}"
+                                throw e
+                            }
+                        }
                     }
                 }
-            }
-        }
-    }
-}
 
-                
                 stage('Build Migration Image') {
                     steps {
                         script {
@@ -71,7 +66,7 @@ pipeline {
                         }
                     }
                 }
-            }
+            } // End of parallel block
         }
         
         stage('Run Unit Tests') {
@@ -86,9 +81,7 @@ pipeline {
             steps {
                 script {
                     // Create directory for results
-                  
                     trivy_scan()
-                    
                 }
             }
         }
@@ -118,7 +111,7 @@ pipeline {
                         }
                     }
                 }
-            }
+            } // End of parallel block
         }
         
         // Add this new stage
