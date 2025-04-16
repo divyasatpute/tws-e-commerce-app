@@ -48,13 +48,16 @@ pipeline {
             }
         }
 
-       stage('Run Unit Tests') {
-    steps {
-        script {
-            run_tests()  // Ensure the function `run_tests()` is defined correctly
+       stages {
+        stage('Run Tests') {
+            steps {
+                script {
+                    // Call the 'runUnitTests' method from your shared library
+                    runUnitTests()
+                }
+            }
         }
     }
-}
 
 
         stage('Security Scan with Trivy') {
