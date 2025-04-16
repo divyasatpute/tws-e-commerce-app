@@ -70,7 +70,7 @@ pipeline {
                 stage('Push Main App Image') {
                     steps {
                         script {
-                            docker_push(
+                            docker.push(
                                 imageName: env.DOCKER_IMAGE_NAME,
                                 imageTag: env.DOCKER_IMAGE_TAG,
                                 credentials: 'docker-hub-credentials'
@@ -82,7 +82,7 @@ pipeline {
                 stage('Push Migration Image') {
                     steps {
                         script {
-                            docker_push(
+                            docker.push(
                                 imageName: env.DOCKER_MIGRATION_IMAGE_NAME,
                                 imageTag: env.DOCKER_IMAGE_TAG,
                                 credentials: 'docker-hub-credentials'
