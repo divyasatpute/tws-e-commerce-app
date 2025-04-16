@@ -11,7 +11,7 @@ pipeline {
         GITHUB_CREDENTIALS = credentials('github-credentials')
         GIT_BRANCH = "master"
     }
-    
+
     stages {
         stage('Cleanup Workspace') {
             steps {
@@ -26,8 +26,7 @@ pipeline {
                 git branch: 'master', url: 'https://github.com/divyasatpute/tws-e-commerce-app.git'
             }
         }
-
-        stages {
+        
         stage('Build Docker Images') {
             parallel {
                 stage('Build Main App Image') {
@@ -53,35 +52,33 @@ pipeline {
                         }
                     }
                 }
-                
-                // You can add additional parallel steps here
-                stage('Another Parallel Step') {
+
+                stage('Build Migration Image') {
                     steps {
                         script {
-                            echo "Another task running in parallel."
+                            try {
+                                echo "Building Docker migration image: ${env.DOCKER_MIGRATION_IMAGE_NAME}:${env.DOCKER_IMAGE_TAG} using Dockerfile: scripts/Dockerfile.migration"
+                                
+                                // Call docker.build function for migration image
+                                docker.build(
+                                    imageName: "${env.DOCKER_MIGRATION_IMAGE_NAME}:${env.DOCKER_IMAGE_TAG}",
+                                    dockerfile: 'scripts/Dockerfile.migration',
+                                    context: '.'
+                                )
+
+                                echo "Docker migration image ${env.DOCKER_MIGRATION_IMAGE_NAME}:${env.DOCKER_IMAGE_TAG} built successfully."
+                            } catch (Exception e) {
+                                currentBuild.result = 'FAILURE'
+                                echo "Error during Docker build for migration image ${env.DOCKER_MIGRATION_IMAGE_NAME}:${env.DOCKER_IMAGE_TAG}: ${e.getMessage()}"
+                                echo "Stacktrace: ${e.getStackTrace()}"
+                                throw e
+                            }
                         }
                     }
                 }
             }
         }
-    }
-}
 
-                stage('Build Migration Image') {
-                    steps {
-                        script {
-                            docker_build(
-                                imageName: env.DOCKER_MIGRATION_IMAGE_NAME,
-                                imageTag: env.DOCKER_IMAGE_TAG,
-                                dockerfile: 'scripts/Dockerfile.migration',
-                                context: '.'
-                            )
-                        }
-                    }
-                }
-            } // End of parallel block
-        }
-        
         stage('Run Unit Tests') {
             steps {
                 script {
@@ -93,12 +90,12 @@ pipeline {
         stage('Security Scan with Trivy') {
             steps {
                 script {
-                    // Create directory for results
+                    // Create directory for results and run Trivy scan
                     trivy_scan()
                 }
             }
         }
-        
+
         stage('Push Docker Images') {
             parallel {
                 stage('Push Main App Image') {
@@ -112,7 +109,7 @@ pipeline {
                         }
                     }
                 }
-                
+
                 stage('Push Migration Image') {
                     steps {
                         script {
@@ -124,10 +121,9 @@ pipeline {
                         }
                     }
                 }
-            } // End of parallel block
+            }
         }
-        
-        // Add this new stage
+
         stage('Update Kubernetes Manifests') {
             steps {
                 script {
