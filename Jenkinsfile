@@ -27,6 +27,7 @@ pipeline {
             }
         }
 
+        stages {
         stage('Build Docker Images') {
             parallel {
                 stage('Build Main App Image') {
@@ -35,10 +36,9 @@ pipeline {
                             try {
                                 echo "Building Docker image: ${env.DOCKER_IMAGE_NAME}:${env.DOCKER_IMAGE_TAG} using Dockerfile: Dockerfile"
                                 
-                                // Call docker_build function
+                                // Call docker.build function
                                 docker.build(
-                                    imageName: env.DOCKER_IMAGE_NAME,
-                                    imageTag: env.DOCKER_IMAGE_TAG,
+                                    imageName: "${env.DOCKER_IMAGE_NAME}:${env.DOCKER_IMAGE_TAG}",
                                     dockerfile: 'Dockerfile',
                                     context: '.'
                                 )
@@ -53,6 +53,19 @@ pipeline {
                         }
                     }
                 }
+                
+                // You can add additional parallel steps here
+                stage('Another Parallel Step') {
+                    steps {
+                        script {
+                            echo "Another task running in parallel."
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
                 stage('Build Migration Image') {
                     steps {
