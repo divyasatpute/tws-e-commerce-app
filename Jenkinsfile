@@ -22,13 +22,12 @@ pipeline {
             }
         }
         
-        stage('Clone Repository') {
-            steps {
-                script {
-                    clone("https://github.com/divyasatpute/tws-e-commerce-app.git","master")
-                }
-            }
-        }
+    stage('Clone Repository') {
+    steps {
+        git branch: 'master', url: 'https://github.com/divyasatpute/tws-e-commerce-app.git'
+          }
+    }
+
         
         stage('Build Docker Images') {
             parallel {
