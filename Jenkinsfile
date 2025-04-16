@@ -48,7 +48,6 @@ pipeline {
             }
         }
 
-       stages {
         stage('Run Tests') {
             steps {
                 script {
@@ -57,9 +56,6 @@ pipeline {
                 }
             }
         }
-    }
-    }
-
 
         stage('Security Scan with Trivy') {
             steps {
