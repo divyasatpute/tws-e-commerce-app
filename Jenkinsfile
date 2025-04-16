@@ -14,15 +14,13 @@ pipeline {
     stages {
         stage('Cleanup Workspace') {
             steps {
-                script {
-                    cleanWs()
-                }
+                cleanWs()
             }
         }
 
         stage('Clone Repository') {
             steps {
-                git branch: 'master', url: 'https://github.com/divyasatpute/tws-e-commerce-app.git'
+                git branch: "${env.GIT_BRANCH}", url: 'https://github.com/divyasatpute/tws-e-commerce-app.git'
             }
         }
 
@@ -31,8 +29,8 @@ pipeline {
                 stage('Build Main App Image') {
                     steps {
                         script {
-                            echo "Building Docker image: ${env.DOCKER_IMAGE_NAME}:${env.DOCKER_IMAGE_TAG}"
-                            docker.build("${env.DOCKER_IMAGE_NAME}:${env.DOCKER_IMAGE_TAG}", ".")
+                            echo "Building Docker image: ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
+                            docker.build("${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}", ".")
                         }
                     }
                 }
@@ -40,8 +38,8 @@ pipeline {
                 stage('Build Migration Image') {
                     steps {
                         script {
-                            echo "Building Migration Docker image: ${env.DOCKER_MIGRATION_IMAGE_NAME}:${env.DOCKER_IMAGE_TAG}"
-                            docker.build("${env.DOCKER_MIGRATION_IMAGE_NAME}:${env.DOCKER_IMAGE_TAG}", "-f scripts/Dockerfile.migration .")
+                            echo "Building Migration Docker image: ${DOCKER_MIGRATION_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
+                            docker.build("${DOCKER_MIGRATION_IMAGE_NAME}:${DOCKER_IMAGE_TAG}", "-f scripts/Dockerfile.migration .")
                         }
                     }
                 }
@@ -51,35 +49,34 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    // Call the 'runUnitTests' method from your shared library
                     runUnitTests()
                 }
             }
         }
 
-       stage('Security Scan with Trivy') {
+        stage('Security Scan with Trivy') {
             steps {
                 script {
-                    trivyScan(imageName: 'your-image-name', imageTag: 'latest', threshold: 100, severity: 'HIGH,CRITICAL')
+                    trivyScan(
+                        imageName: "${DOCKER_IMAGE_NAME}",
+                        imageTag: "${DOCKER_IMAGE_TAG}",
+                        threshold: 100,
+                        severity: 'HIGH,CRITICAL'
+                    )
                 }
             }
         }
 
-        script {
-    docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-credentials') {
-        def image = docker.image('divyasatpute/easyshop-app:25')
-        image.push()
-    }
-}
-
-
-               script {
-    docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-credentials') {
-        def image = docker.image('divyasatpute/easyshop-migration:25')
-        image.push()
-    }
-}
-
+        stage('Push Docker Images') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-credentials') {
+                        docker.image("${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}").push()
+                        docker.image("${DOCKER_MIGRATION_IMAGE_NAME}:${DOCKER_IMAGE_TAG}").push()
+                    }
+                }
+            }
+        }
 
         stage('Update Kubernetes Manifests') {
             steps {
