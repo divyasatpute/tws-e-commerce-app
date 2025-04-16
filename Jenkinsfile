@@ -36,7 +36,7 @@ pipeline {
                                 echo "Building Docker image: ${env.DOCKER_IMAGE_NAME}:${env.DOCKER_IMAGE_TAG} using Dockerfile: Dockerfile"
                                 
                                 // Call docker_build function
-                                docker_build(
+                                docker.build(
                                     imageName: env.DOCKER_IMAGE_NAME,
                                     imageTag: env.DOCKER_IMAGE_TAG,
                                     dockerfile: 'Dockerfile',
