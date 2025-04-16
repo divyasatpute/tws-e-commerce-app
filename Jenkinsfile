@@ -58,6 +58,7 @@ pipeline {
             }
         }
     }
+    }
 
 
         stage('Security Scan with Trivy') {
