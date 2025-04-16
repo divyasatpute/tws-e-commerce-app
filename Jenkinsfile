@@ -48,13 +48,14 @@ pipeline {
             }
         }
 
-        stage('Run Unit Tests') {
-            steps {
-                script {
-                    run_tests()
-                }
-            }
+       stage('Run Unit Tests') {
+    steps {
+        script {
+            run_tests()  // Ensure the function `run_tests()` is defined correctly
         }
+    }
+}
+
 
         stage('Security Scan with Trivy') {
             steps {
