@@ -58,12 +58,12 @@ pipeline {
         }
 
         stage('Security Scan with Trivy') {
-            steps {
-                script {
-                    trivy_scan()
-                }
-            }
+    steps {
+        script {
+            trivyScan.scan()
         }
+    }
+}
 
         stage('Push Docker Images') {
             parallel {
